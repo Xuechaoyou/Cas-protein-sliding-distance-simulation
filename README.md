@@ -1,8 +1,61 @@
 # Cas-protein-sliding-distance-simulation
-This collection is a Python code for Monte Carlo simulation.
+import random
+import numpy as np
+import time
 
-The code was utilized to determine the optimal sliding distance of Cas9 along the DNA strand, enabling efficient and rapid localization of the target site in the shortest amount of time.
+t1 = 0.1  # 3D searcning time (s)
+t2 = 0.16  # PAM reading time (s)
+V = 100  # sliding rate（bp/s）
+X = 2000000  # DNA length（bp）
+N = 125000  # PAM numbers
+D1 = 16  # PAM interval
 
-To run the simulation, you need to copy the code and run it into Python version 3.7. 
+num_trials = 10000  # simulation time
 
-Refer to the methods section for the demo parameters.
+# D2 iteration
+D2_values = np.arange(1, 101, 1)
+min_avg_flights = float("inf")  # minimum searching time
+best_D2 = None  # the best D2
+
+for D2 in D2_values:
+
+    
+    total_flights = 0  # total searching time
+
+    for i in range(num_trials):
+        bird_pos = random.uniform(0, X)  # random position
+        num_flights = 0  # current searching time
+        direction = random.choice([-1, 1])  # direction
+
+        while True:
+            bird_pos += direction * D2
+
+            # PAM reading
+            if int(bird_pos / D1) % 2 == 1:
+                num_flights += 1
+                time.sleep(t2)
+
+            # find the target site
+            if bird_pos < 0 or bird_pos > X:
+                total_flights += num_flights
+                break
+
+            # sliding direction
+            if random.random() < 0.5:
+                direction = -direction
+
+            # 3D collision time
+            time.sleep(t1)
+            num_flights += 1
+
+    # average searching time
+    avg_flights = total_flights / num_trials
+
+    # the best D2
+    if avg_flights < min_avg_flights:
+        min_avg_flights = avg_flights
+        best_D2 = D2
+
+print("the best D2：{}".format(best_D2))
+
+
